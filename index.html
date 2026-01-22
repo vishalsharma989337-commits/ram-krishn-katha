@@ -1,66 +1,144 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <title>राम–कृष्ण कथा</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body{
-            margin:0;
-            font-family: Arial, sans-serif;
-            background:#fff8e1;
-            color:#4a2c0a;
-        }
-        header{
-            background:#ff9800;
-            color:white;
-            padding:15px;
-            text-align:center;
-        }
-        section{
-            padding:15px;
-        }
-        .card{
-            background:white;
-            padding:15px;
-            margin-bottom:15px;
-            border-radius:8px;
-            box-shadow:0 2px 5px rgba(0,0,0,0.1);
-        }
-        footer{
-            background:#ff9800;
-            color:white;
-            text-align:center;
-            padding:10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Ram Krishn Katha Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#fff3d6;
+}
+header{
+  background:#ff9800;
+  color:white;
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+}
+.container{
+  padding:15px;
+}
+.card{
+  background:white;
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 4px 8px rgba(0,0,0,0.2);
+}
+button{
+  width:100%;
+  padding:12px;
+  font-size:18px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#4caf50;
+  color:white;
+}
+button:hover{
+  background:#43a047;
+}
+.lang{
+  display:flex;
+  gap:10px;
+}
+.lang button{
+  width:50%;
+  background:#2196f3;
+}
+.hidden{
+  display:none;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-    <h1>राम–कृष्ण कथा</h1>
-    <p>धार्मिक व संस्कार वाली कहानियाँ</p>
+🌸 Ram Krishn Katha – Game 🌸
 </header>
 
-<section>
-    <div class="card">
-        <h2>श्री राम कथा</h2>
-        <p>
-            मर्यादा पुरुषोत्तम श्री राम की कथा हमें सत्य, त्याग और धर्म का मार्ग दिखाती है।
-        </p>
-    </div>
+<div class="container">
 
-    <div class="card">
-        <h2>श्री कृष्ण कथा</h2>
-        <p>
-            श्री कृष्ण की लीलाएँ प्रेम, बुद्धि और कर्मयोग का संदेश देती हैं।
-        </p>
-    </div>
-</section>
+<div class="lang">
+<button onclick="setLang('hi')">हिंदी</button>
+<button onclick="setLang('en')">English</button>
+</div>
 
-<footer>
-    <p>© 2026 ram-krishn-katha</p>
-</footer>
+<div id="screen-home" class="card">
+<h2 id="title">खेल शुरू करें</h2>
+<p id="desc">धार्मिक कथाओं पर आधारित मज़ेदार गेम</p>
+<button onclick="startGame()">Start Game</button>
+</div>
+
+<div id="screen-level" class="card hidden">
+<h2 id="levelTitle">Level 1</h2>
+<p id="story"></p>
+<button onclick="nextLevel()">Next Level</button>
+</div>
+
+</div>
+
+<script>
+let lang="hi";
+let level=1;
+
+const data={
+hi:[
+"भगवान राम सत्य और धर्म के प्रतीक हैं।",
+"राम ने माता-पिता की आज्ञा मानी।",
+"कृष्ण ने अर्जुन को गीता का ज्ञान दिया।",
+"कृष्ण बाल लीला में माखन चुराते थे।",
+"राम ने रावण का वध किया।",
+"कृष्ण ने कंस का अंत किया।",
+"धर्म की जीत होती है।"
+],
+en:[
+"Lord Ram represents truth and dharma.",
+"Ram obeyed his parents.",
+"Krishna gave Geeta to Arjuna.",
+"Krishna loved butter in childhood.",
+"Ram defeated Ravana.",
+"Krishna defeated Kansa.",
+"Truth always wins."
+]
+};
+
+function setLang(l){
+  lang=l;
+  document.getElementById("title").innerText =
+    l=="hi" ? "खेल शुरू करें" : "Start Game";
+  document.getElementById("desc").innerText =
+    l=="hi" ? "धार्मिक कथाओं पर आधारित मज़ेदार गेम" :
+    "Fun game based on holy stories";
+}
+
+function startGame(){
+  document.getElementById("screen-home").classList.add("hidden");
+  document.getElementById("screen-level").classList.remove("hidden");
+  showLevel();
+}
+
+function showLevel(){
+  document.getElementById("levelTitle").innerText =
+    (lang=="hi"?"Level ":"Level ")+level;
+  document.getElementById("story").innerText =
+    data[lang][level-1];
+}
+
+function nextLevel(){
+  level++;
+  if(level>7){
+    alert(lang=="hi"?"आपने गेम पूरा कर लिया!":"Game Completed!");
+    location.reload();
+  }else{
+    showLevel();
+  }
+}
+</script>
 
 </body>
-  </html>
+</html>
