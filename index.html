@@ -2,16 +2,29 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ramayan Game – Demo</title>
+<title>Ramayan Game – River Crossing</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{margin:0;background:#ffedd5;font-family:Arial}
-canvas{background:#ffd180;display:block;margin:auto}
-.controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
-.btn{padding:15px 20px;font-size:18px;border:none;border-radius:10px;background:#ff6f00;color:#fff}
+body{margin:0;background:#ffe0b2;font-family:Arial}
+canvas{display:block;margin:auto;background:#ffcc80}
+.controls{
+ position:fixed;bottom:10px;left:50%;
+ transform:translateX(-50%);
+ display:flex;gap:10px;
+}
+.btn{
+ padding:14px 18px;
+ font-size:18px;
+ border:none;
+ border-radius:10px;
+ background:#f57c00;
+ color:#fff;
+}
 .lang{position:fixed;top:10px;right:10px}
 </style>
 </head>
+
 <body>
 
 <div class="lang">
@@ -19,7 +32,7 @@ canvas{background:#ffd180;display:block;margin:auto}
 <button onclick="setLang('en')">English</button>
 </div>
 
-<canvas id="game" width="360" height="500"></canvas>
+<canvas id="game" width="360" height="520"></canvas>
 
 <div class="controls">
 <button class="btn" ontouchstart="left=true" ontouchend="left=false">⬅️</button>
@@ -28,71 +41,103 @@ canvas{background:#ffd180;display:block;margin:auto}
 </div>
 
 <script>
-const c=document.getElementById("game"),ctx=c.getContext("2d");
-let lang="hi",x=150,y=380,boat=false,left=false,right=false,action=false;
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-const msg={
-hi:"नदी पार करने के लिए नाव में बैठें",
-en:"Sit in the boat to cross the river"
+let lang="hi";
+let ram={x:160,y:380};
+let boat={x:140,y:270,w:80,h:30};
+let inBoat=false,levelDone=false;
+
+let left=false,right=false,action=false;
+
+function speak(text){
+ speechSynthesis.cancel();
+ let u=new SpeechSynthesisUtterance(text);
+ u.lang=lang==="hi"?"hi-IN":"en-US";
+ u.pitch=1.2;
+ u.rate=0.9;
+ speechSynthesis.speak(u);
+}
+
+const guide={
+hi:"नाव के पास जाएँ और 🚣 दबाएँ",
+en:"Go near the boat and press 🚣"
 };
 
 function setLang(l){
-lang=l;
-speak(lang==="hi"?"नदी पार करने के लिए नाव में बैठें":"Sit in the boat to cross the river");
-}
-
-function speak(t){
-speechSynthesis.cancel();
-let u=new SpeechSynthesisUtterance(t);
-u.lang=lang==="hi"?"hi-IN":"en-US";
-u.pitch=1.3;
-u.rate=0.9;
-speechSynthesis.speak(u);
+ lang=l;
+ speak(guide[lang]);
 }
 
 document.addEventListener("keydown",e=>{
-if(e.key==="ArrowLeft")left=true;
-if(e.key==="ArrowRight")right=true;
-if(e.key===" ")action=true;
+ if(e.key==="ArrowLeft")left=true;
+ if(e.key==="ArrowRight")right=true;
+ if(e.key===" ")action=true;
 });
-document.addEventListener("keyup",e=>{
-left=right=action=false;
-});
+document.addEventListener("keyup",()=>{left=right=action=false});
 
 function update(){
-if(left)x-=3;
-if(right)x+=3;
-if(x<0)x=0;if(x>320)x=320;
+ if(!inBoat){
+  if(left)ram.x-=3;
+  if(right)ram.x+=3;
+ }
+ if(ram.x<0)ram.x=0;
+ if(ram.x>320)ram.x=320;
 
-if(action && x>130 && x<200){
-boat=true;
-y-=1;
-if(y<50){
-speak(lang==="hi"?"अच्छा काम! धैर्य से जीत होती है":"Well done! Patience leads to victory");
-}
-}
+ // Enter boat
+ if(action && !inBoat &&
+    ram.x>boat.x-20 && ram.x<boat.x+boat.w){
+  inBoat=true;
+  speak(lang==="hi"?"राम जी नाव में बैठ गए":"Ram sits in the boat");
+ }
+
+ // Boat movement
+ if(inBoat && !levelDone){
+  boat.y-=1;
+  ram.y=boat.y-10;
+  if(boat.y<120){
+   levelDone=true;
+   speak(lang==="hi"
+   ?"शाबाश! धैर्य और साहस से सफलता मिलती है"
+   :"Well done! Courage and patience lead to success");
+  }
+ }
 }
 
 function draw(){
-ctx.clearRect(0,0,360,500);
-ctx.fillStyle="#4fc3f7";
-ctx.fillRect(0,250,360,150); // river
-ctx.fillStyle="#8d6e63";
-ctx.fillRect(140,260,80,30); // boat
+ ctx.clearRect(0,0,360,520);
 
-ctx.font="40px serif";
-ctx.fillText("🏹",x,y);
+ // River
+ ctx.fillStyle="#4fc3f7";
+ ctx.fillRect(0,250,360,170);
 
-ctx.font="16px Arial";
-ctx.fillText(msg[lang],60,240);
+ // Boat
+ ctx.fillStyle="#8d6e63";
+ ctx.fillRect(boat.x,boat.y,boat.w,boat.h);
+ ctx.fillStyle="#5d4037";
+ ctx.fillRect(boat.x+10,boat.y-10,60,10);
+
+ // Ram
+ ctx.font="42px serif";
+ ctx.fillText("🏹",ram.x,ram.y);
+
+ // Text
+ ctx.fillStyle="#000";
+ ctx.font="16px Arial";
+ if(!levelDone)
+ ctx.fillText(guide[lang],70,230);
+ else
+ ctx.fillText(lang==="hi"?"Level Complete":"Level Complete",120,230);
 }
 
 function loop(){
-update();
-draw();
-requestAnimationFrame(loop);
+ update();
+ draw();
+ requestAnimationFrame(loop);
 }
-speak(msg[lang]);
+
+speak(guide[lang]);
 loop();
 </script>
 
