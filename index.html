@@ -1,200 +1,99 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Ram Krishna Katha – Cartoon Game</title>
+<title>Ramayan Game – Demo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body{
-  margin:0;
-  font-family:'Comic Sans MS', Arial;
-  background:linear-gradient(#fff3c4,#ffe082);
-}
-header{
-  background:#ff6f00;
-  color:white;
-  text-align:center;
-  padding:15px;
-  font-size:24px;
-}
-.container{padding:15px;}
-.card{
-  background:white;
-  border-radius:15px;
-  padding:15px;
-  margin-bottom:15px;
-  box-shadow:0 6px 12px rgba(0,0,0,.2);
-}
-button{
-  width:100%;
-  padding:14px;
-  font-size:18px;
-  border:none;
-  border-radius:10px;
-  background:#4caf50;
-  color:white;
-  margin-top:10px;
-}
-button:hover{background:#2e7d32;}
-.hidden{display:none;}
-.lang{display:flex;gap:10px;}
-.lang button{background:#2196f3;width:50%;}
-.char{
-  font-size:70px;
-  text-align:center;
-}
-.lock{
-  background:#e53935;
-}
-.music{
-  background:#8e24aa;
-}
-.pay{
-  background:#ff9800;
-}
+body{margin:0;background:#ffedd5;font-family:Arial}
+canvas{background:#ffd180;display:block;margin:auto}
+.controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.btn{padding:15px 20px;font-size:18px;border:none;border-radius:10px;background:#ff6f00;color:#fff}
+.lang{position:fixed;top:10px;right:10px}
 </style>
 </head>
-
 <body>
 
-<header>
-🕉️ Ram Krishna Katha – Cartoon Game
-</header>
-
-<div class="container">
-
 <div class="lang">
-  <button onclick="setLang('hi')">हिंदी</button>
-  <button onclick="setLang('en')">English</button>
+<button onclick="setLang('hi')">हिंदी</button>
+<button onclick="setLang('en')">English</button>
 </div>
 
-<div class="card">
-  <button class="music" onclick="toggleMusic()">🎵 Music ON / OFF</button>
+<canvas id="game" width="360" height="500"></canvas>
+
+<div class="controls">
+<button class="btn" ontouchstart="left=true" ontouchend="left=false">⬅️</button>
+<button class="btn" ontouchstart="right=true" ontouchend="right=false">➡️</button>
+<button class="btn" ontouchstart="action=true" ontouchend="action=false">🚣</button>
 </div>
-
-<div id="home" class="card">
-  <div class="char">👶🎶</div>
-  <h2 id="title">स्वागत है</h2>
-  <p id="desc">राम और कृष्ण की पवित्र कथाओं पर आधारित कार्टून गेम</p>
-  <button onclick="startGame()">Start Game</button>
-</div>
-
-<div id="game" class="card hidden">
-  <div class="char" id="emoji"></div>
-  <h2 id="levelTitle"></h2>
-  <p id="story"></p>
-  <button onclick="nextLevel()">Next</button>
-</div>
-
-<div id="paywall" class="card hidden">
-  <div class="char">🔒💰</div>
-  <h2>Premium Levels Locked</h2>
-  <p>आगे खेलने के लिए ₹29 का support करें</p>
-  <a href="upi://pay?pa=yourupi@upi&pn=RamKrishnaGame&am=29&cu=INR">
-    <button class="pay">Pay ₹29 via UPI</button>
-  </a>
-  <button onclick="unlock()">I Have Paid</button>
-</div>
-
-<div id="end" class="card hidden">
-  <div class="char">🙏🌸</div>
-  <h2>Game Completed</h2>
-  <p>धन्यवाद! आपने पूरा गेम खेला</p>
-  <button onclick="restart()">Play Again</button>
-</div>
-
-</div>
-
-<audio id="bgm" loop>
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_6cbb1c8cda.mp3">
-</audio>
-
-<audio id="click">
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_3e6a5b9c47.mp3">
-</audio>
 
 <script>
-let lang="hi";
-let level=0;
-let unlocked=false;
-const music=document.getElementById("bgm");
-const click=document.getElementById("click");
+const c=document.getElementById("game"),ctx=c.getContext("2d");
+let lang="hi",x=150,y=380,boat=false,left=false,right=false,action=false;
 
-const levels={
-hi:[
-{t:"कृष्ण जन्म",s:"कृष्ण का जन्म मथुरा में हुआ",e:"👶"},
-{t:"माखन चोरी",s:"बाल कृष्ण माखन खाते थे",e:"🧈"},
-{t:"कालिया नाग",s:"कृष्ण ने कालिया नाग को हराया",e:"🐍"},
-{t:"गीता ज्ञान",s:"कृष्ण ने अर्जुन को गीता सिखाई",e:"📜"},
-{t:"राम जन्म",s:"राम का जन्म अयोध्या में हुआ",e:"👑"},
-{t:"वनवास",s:"राम 14 वर्ष वनवास गए",e:"🌲"},
-{t:"लंका युद्ध",s:"राम ने रावण को हराया",e:"🔥"},
-{t:"राम राज्य",s:"राम राज्य की स्थापना",e:"🏹"}
-],
-en:[
-{t:"Krishna Birth",s:"Krishna was born in Mathura",e:"👶"},
-{t:"Butter Thief",s:"Krishna loved butter",e:"🧈"},
-{t:"Kaliya Naag",s:"Krishna defeated Kaliya",e:"🐍"},
-{t:"Gita Gyaan",s:"Krishna taught Gita",e:"📜"},
-{t:"Ram Birth",s:"Ram was born in Ayodhya",e:"👑"},
-{t:"Vanvaas",s:"Ram went to forest",e:"🌲"},
-{t:"Lanka War",s:"Ram defeated Ravan",e:"🔥"},
-{t:"Ram Rajya",s:"Ram Rajya established",e:"🏹"}
-]
+const msg={
+hi:"नदी पार करने के लिए नाव में बैठें",
+en:"Sit in the boat to cross the river"
 };
 
 function setLang(l){
- lang=l;
- document.getElementById("title").innerText=l==="hi"?"स्वागत है":"Welcome";
- document.getElementById("desc").innerText=l==="hi"?"कार्टून धार्मिक गेम":"Cartoon devotional game";
+lang=l;
+speak(lang==="hi"?"नदी पार करने के लिए नाव में बैठें":"Sit in the boat to cross the river");
 }
 
-function toggleMusic(){
- music.paused?music.play():music.pause();
+function speak(t){
+speechSynthesis.cancel();
+let u=new SpeechSynthesisUtterance(t);
+u.lang=lang==="hi"?"hi-IN":"en-US";
+u.pitch=1.3;
+u.rate=0.9;
+speechSynthesis.speak(u);
 }
 
-function startGame(){
- click.play();
- document.getElementById("home").classList.add("hidden");
- document.getElementById("game").classList.remove("hidden");
- level=0;
- show();
+document.addEventListener("keydown",e=>{
+if(e.key==="ArrowLeft")left=true;
+if(e.key==="ArrowRight")right=true;
+if(e.key===" ")action=true;
+});
+document.addEventListener("keyup",e=>{
+left=right=action=false;
+});
+
+function update(){
+if(left)x-=3;
+if(right)x+=3;
+if(x<0)x=0;if(x>320)x=320;
+
+if(action && x>130 && x<200){
+boat=true;
+y-=1;
+if(y<50){
+speak(lang==="hi"?"अच्छा काम! धैर्य से जीत होती है":"Well done! Patience leads to victory");
+}
+}
 }
 
-function show(){
- let d=levels[lang][level];
- document.getElementById("levelTitle").innerText=d.t;
- document.getElementById("story").innerText=d.s;
- document.getElementById("emoji").innerText=d.e;
+function draw(){
+ctx.clearRect(0,0,360,500);
+ctx.fillStyle="#4fc3f7";
+ctx.fillRect(0,250,360,150); // river
+ctx.fillStyle="#8d6e63";
+ctx.fillRect(140,260,80,30); // boat
+
+ctx.font="40px serif";
+ctx.fillText("🏹",x,y);
+
+ctx.font="16px Arial";
+ctx.fillText(msg[lang],60,240);
 }
 
-function nextLevel(){
- click.play();
- level++;
- if(level===4 && !unlocked){
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("paywall").classList.remove("hidden");
-  return;
- }
- if(level<levels[lang].length){
-  show();
- }else{
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("end").classList.remove("hidden");
- }
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
 }
-
-function unlock(){
- unlocked=true;
- document.getElementById("paywall").classList.add("hidden");
- document.getElementById("game").classList.remove("hidden");
- show();
-}
-
-function restart(){
- location.reload();
-}
+speak(msg[lang]);
+loop();
 </script>
 
 </body>
